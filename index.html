@@ -399,12 +399,18 @@
         function rotateBearImage() {
             currentBearIndex = (currentBearIndex + 1) % bearImages.length;
             document.getElementById('bear-img').src = bearImages[currentBearIndex];
-            document.getElementById('status-text').innerText = `📖 認真讀書中)`;
+            document.getElementById('status-text').innerText = `📖 認真讀書中`;
         }
 
         function startTimer() {
             if (isRunning) return;
             isRunning = true;
+
+            // 只要一按下開始，且目前是讀書模式，就立刻更新狀態文字！
+            if (isStudyMode) {
+                document.getElementById('status-text').innerText = "📖 認真讀書中";
+            }
+
             timerInterval = setInterval(() => {
                 if (totalSeconds > 0) {
                     totalSeconds--;
