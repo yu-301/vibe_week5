@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奶茶熊專注計時器 🐻</title>
+    <style>
+        :root {
+            --bg-color: #f7f1e5;
+            --card-bg: #fff8f0;
+            --primary-color: #8d5b4c;
+            --accent-color: #d4a373;
+            --btn-hover: #bc6c25;
+            --text-color: #4a3b32;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(141, 91, 76, 0.15);
+            text-align: center;
+            border: 3px solid #e6ccb2;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background-color: #e6ccb2;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--primary-color);
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .bear-display img {
+            width: auto;
+            max-width: 220px;
+            height: 200px;
+            border-radius: 16px;
+            /* 柔和微微圓角，不剪裁圖片 */
+            object-fit: contain;
+            /* 保持原圖完整比例不切圖 */
+            background-color: transparent;
+            margin-bottom: 15px;
+            /* 營造像立體公仔在桌面上的立體陰影與懸浮感 */
+            filter: drop-shadow(0px 8px 12px rgba(141, 91, 76, 0.25));
+            transition: transform 0.3s ease;
+        }
+
+        .bear-display img:hover {
+            transform: translateY(-5px) scale(1.03);
+            /* 滑鼠游移時微浮起來，更像實體公仔 */
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .option-group {
+            margin: 15px 0;
+        }
+
+        .option-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--btn-hover);
+        }
+
+        button.active-opt {
+            background-color: var(--primary-color);
+        }
+
+        .action-btn {
+            background-color: var(--primary-color);
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+
+        .save-btn {
+            background-color: #6b705c;
+            margin-top: 10px;
+        }
+
+        .music-control {
+            margin-top: 20px;
+            background: #ede0d4;
+            padding: 12px;
+            border-radius: 16px;
+        }
+
+        .goal-input-box {
+            background-color: #ede0d4;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .goal-input-box input {
+            width: 60px;
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .progress-bar-container {
+            background-color: #e6ccb2;
+            border-radius: 12px;
+            height: 22px;
+            width: 100%;
+            overflow: hidden;
+            margin: 15px 0 5px 0;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .bear-icons-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* 累積頁面：拿掉圓圈與邊框，呈現獨立圖片標籤 */
+        .bear-icon-img {
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            object-fit: contain;
+            background-color: transparent;
+            filter: drop-shadow(0px 3px 5px rgba(141, 91, 76, 0.2));
+            transition: transform 0.2s ease;
+        }
+
+        .bear-icon-img:hover {
+            transform: scale(1.15);
+        }
+
+        .history-list {
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #ede0d4;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- 切換頁籤 -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('timer')">🐻 專注計時</button>
+            <button class="tab-btn" onclick="switchTab('stats')">📊 學習累計</button>
+        </div>
+
+        <!-- 計時頁面 -->
+        <div id="timer-section" class="section active">
+            <div class="bear-display">
+                <!-- 指向本地 assets/ 資料夾中的圖片 -->
+                <img id="bear-img" src="assets/bear1.png" alt="Bear Photo"
+                    onerror="this.src='https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=300&auto=format&fit=crop'">
+                <div id="status-text" style="font-weight:bold; color:var(--primary-color);">準備好開始專注了嗎？ (第 1 隻熊陪伴中)</div>
+            </div>
+
+            <div class="timer-display" id="timer-display">30:00</div>
+
+            <!-- 讀書時間選擇 -->
+            <div class="option-group">
+                <label>讀書時長：</label>
+                <div class="btn-group">
+                    <button class="study-opt active-opt" onclick="setStudyTime(30, this)">30分</button>
+                    <button class="study-opt" onclick="setStudyTime(60, this)">60分</button>
+                    <button class="study-opt" onclick="setStudyTime(90, this)">90分</button>
+                </div>
+            </div>
+
+            <!-- 休息時間選擇 -->
+            <div class="option-group">
+                <label>休息時長：</label>
+                <div class="btn-group">
+                    <button class="rest-opt active-opt" onclick="setRestTime(5, this)">5分</button>
+                    <button class="rest-opt" onclick="setRestTime(10, this)">10分</button>
+                    <button class="rest-opt" onclick="setRestTime(15, this)">15分</button>
+                </div>
+            </div>
+
+            <!-- 計時按鈕 -->
+            <div class="btn-group">
+                <button class="action-btn" onclick="startTimer()">開始</button>
+                <button class="action-btn" onclick="pauseTimer()">暫停</button>
+                <button class="action-btn" onclick="resetTimer()">重置</button>
+                <button onclick="skipRest()">跳過休息</button>
+            </div>
+
+            <div>
+                <button class="save-btn" onclick="saveCurrentSession()">💾 將此時長存入累計</button>
+            </div>
+
+            <!-- 音樂播放 -->
+            <div class="music-control">
+                <label>🎵 背景音樂：</label>
+                <input type="checkbox" id="bgm-toggle" onchange="toggleBGM()"> 開啟
+                <input type="range" id="bgm-volume" min="0" max="1" step="0.1" value="0.5"
+                    onchange="changeVolume(this.value)">
+                <audio id="bgm-audio" loop
+                    src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+            </div>
+        </div>
+
+        <!-- 統計紀錄頁面 -->
+        <div id="stats-section" class="section">
+            <h2>學習總時長統計 📈</h2>
+
+            <!-- 自訂目標輸入框 -->
+            <div class="goal-input-box">
+                <label for="target-hours">🎯 設定目標時間：</label>
+                <input type="number" id="target-hours" value="5" min="1" max="100" onchange="updateGoalHours()">
+                <span>小時</span>
+            </div>
+
+            <h3 id="total-time-text">總計：0 小時 0 分鐘</h3>
+
+            <!-- 進度條 -->
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <small id="goal-progress-text">目標進度：0% (目標 5 小時)</small>
+
+            <!-- 累積滿 1 小時獲得的熊熊勳章列表 -->
+            <div class="bear-icons-container" id="bear-icons">
+                <!-- 動態產生熊熊照片 -->
+            </div>
+
+            <h4>累計歷史紀錄：</h4>
+            <div class="history-list" id="history-list">
+                無紀錄
+            </div>
+
+            <button style="background-color: #c9184a;" onclick="clearStats()">🗑️ 清零重置紀錄</button>
+        </div>
+    </div>
+
+    <script>
+        // 5 隻熊熊圖片的相對路徑 (放在 assets/ 資料夾中)
+        const bearImages = [
+            "assets/bear1.png",
+            "assets/bear2.png",
+            "assets/bear3.png",
+            "assets/bear4.png",
+            "assets/bear5.png"
+        ];
+
+        let currentBearIndex = 0; // 當前展示的熊熊索引 (0~4)
+
+        let studyTimeMinutes = 30;
+        let restTimeMinutes = 5;
+        let totalSeconds = 30 * 60;
+        let timerInterval = null;
+        let isStudyMode = true;
+        let isRunning = false;
+
+        let totalAccumulatedMinutes = 0;
+        let targetHours = 5; // 預設目標小時
+        let historyLogs = [];
+
+        // Web Audio API 音效
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAlarmSound() {
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            if (tab === 'timer') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('timer-section').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('stats-section').classList.add('active');
+                updateStatsUI();
+            }
+        }
+
+        function updateDisplay() {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            document.getElementById('timer-display').innerText =
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function setStudyTime(mins, btn) {
+            if (isRunning) return;
+            studyTimeMinutes = mins;
+            document.querySelectorAll('.study-opt').forEach(b => b.classList.remove('active-opt'));
+            btn.classList.add('active-opt');
+            if (isStudyMode) {
+                totalSeconds = studyTimeMinutes * 60;
+                updateDisplay();
+            }
+        }
+
+        function setRestTime(mins, btn) {
+            if (isRunning) return;
+            restTimeMinutes = mins;
+            document.querySelectorAll('.rest-opt').forEach(b => b.classList.remove('active-opt'));
+            btn.classList.add('active-opt');
+            if (!isStudyMode) {
+                totalSeconds = restTimeMinutes * 60;
+                updateDisplay();
+            }
+        }
+
+        function rotateBearImage() {
+            currentBearIndex = (currentBearIndex + 1) % bearImages.length;
+            document.getElementById('bear-img').src = bearImages[currentBearIndex];
+            document.getElementById('status-text').innerText = `📖 認真讀書時間 (第 ${currentBearIndex + 1} 隻熊陪伴中)`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    playAlarmSound();
+                    if (isStudyMode) {
+                        alert('🎉 專注時間結束！休息一下吧！');
+                        switchMode(false);
+                    } else {
+                        alert('⏰ 休息結束，準備開始下一次專注囉！');
+                        switchMode(true);
+                    }
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            totalSeconds = (isStudyMode ? studyTimeMinutes : restTimeMinutes) * 60;
+            updateDisplay();
+        }
+
+        function skipRest() {
+            pauseTimer();
+            switchMode(true);
+        }
+
+        function switchMode(toStudy) {
+            isStudyMode = toStudy;
+            if (isStudyMode) {
+                rotateBearImage(); // 進入讀書模式時輪替熊熊照片
+                totalSeconds = studyTimeMinutes * 60;
+            } else {
+                document.getElementById('status-text').innerText = "☕ 快樂休息時間";
+                totalSeconds = restTimeMinutes * 60;
+            }
+            updateDisplay();
+        }
+
+        function saveCurrentSession() {
+            totalAccumulatedMinutes += studyTimeMinutes;
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            historyLogs.push(`[${timeStr}] 累加讀書 ${studyTimeMinutes} 分鐘`);
+
+            rotateBearImage(); // 每次存入時間也輪替下一隻熊熊照片
+            alert(`✅ 已成功將 ${studyTimeMinutes} 分鐘存入統計！照片已切換至第 ${currentBearIndex + 1} 隻熊熊。`);
+        }
+
+        function updateGoalHours() {
+            const val = parseFloat(document.getElementById('target-hours').value);
+            if (val && val > 0) {
+                targetHours = val;
+                updateStatsUI();
+            }
+        }
+
+        function updateStatsUI() {
+            const hours = Math.floor(totalAccumulatedMinutes / 60);
+            const mins = totalAccumulatedMinutes % 60;
+            document.getElementById('total-time-text').innerText = `總計：${hours} 小時 ${mins} 分鐘`;
+
+            // 根據自訂目標計算百分比
+            const targetMinutes = targetHours * 60;
+            const progressPercent = Math.min((totalAccumulatedMinutes / targetMinutes) * 100, 100).toFixed(1);
+
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('goal-progress-text').innerText = `目標進度：${progressPercent}% (目標 ${targetHours} 小時)`;
+
+            // 每滿 1 小時，解鎖一張熊熊照片勳章 (依序 1~5 隻輪替)
+            const bearContainer = document.getElementById('bear-icons');
+            bearContainer.innerHTML = '';
+
+            const fullHours = Math.floor(totalAccumulatedMinutes / 60);
+
+            for (let i = 0; i < fullHours; i++) {
+                const imgIndex = i % bearImages.length;
+                bearContainer.innerHTML += `<img class="bear-icon-img" src="${bearImages[imgIndex]}" title="第 ${i + 1} 小時里程碑" onerror="this.src='https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=100&auto=format&fit=crop'">`;
+            }
+
+            // 更新歷史紀錄
+            const historyContainer = document.getElementById('history-list');
+            if (historyLogs.length === 0) {
+                historyContainer.innerText = "尚無累計紀錄";
+            } else {
+                historyContainer.innerHTML = historyLogs.map(log => `<div>${log}</div>`).join('');
+            }
+        }
+
+        function clearStats() {
+            if (confirm('確定要清零所有學習時長紀錄嗎？')) {
+                totalAccumulatedMinutes = 0;
+                historyLogs = [];
+                updateStatsUI();
+            }
+        }
+
+        // 音樂控制
+        function toggleBGM() {
+            const bgm = document.getElementById('bgm-audio');
+            const isChecked = document.getElementById('bgm-toggle').checked;
+            if (isChecked) {
+                bgm.play();
+            } else {
+                bgm.pause();
+            }
+        }
+
+        function changeVolume(val) {
+            document.getElementById('bgm-audio').volume = val;
+        }
+
+        // 初始化顯示
+        updateDisplay();
+    </script>
+
+</body>
+
+</html>
