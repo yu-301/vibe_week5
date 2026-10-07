@@ -239,7 +239,7 @@
                 <!-- 指向本地 assets/ 資料夾中的圖片 -->
                 <img id="bear-img" src="assets/bear1.png" alt="Bear Photo"
                     onerror="this.src='https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=300&auto=format&fit=crop'">
-                <div id="status-text" style="font-weight:bold; color:var(--primary-color);">準備好開始專注了嗎？ (第 1 隻熊陪伴中)</div>
+                <div id="status-text" style="font-weight:bold; color:var(--primary-color);">準備好開始讀書了嗎？</div>
             </div>
 
             <div class="timer-display" id="timer-display">30:00</div>
@@ -399,7 +399,7 @@
         function rotateBearImage() {
             currentBearIndex = (currentBearIndex + 1) % bearImages.length;
             document.getElementById('bear-img').src = bearImages[currentBearIndex];
-            document.getElementById('status-text').innerText = `📖 認真讀書時間 (第 ${currentBearIndex + 1} 隻熊陪伴中)`;
+            document.getElementById('status-text').innerText = `📖 認真讀書中)`;
         }
 
         function startTimer() {
