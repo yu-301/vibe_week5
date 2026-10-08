@@ -74,19 +74,15 @@
             max-width: 220px;
             height: 200px;
             border-radius: 16px;
-            /* 柔和微微圓角，不剪裁圖片 */
             object-fit: contain;
-            /* 保持原圖完整比例不切圖 */
             background-color: transparent;
             margin-bottom: 15px;
-            /* 營造像立體公仔在桌面上的立體陰影與懸浮感 */
             filter: drop-shadow(0px 8px 12px rgba(141, 91, 76, 0.25));
             transition: transform 0.3s ease;
         }
 
         .bear-display img:hover {
             transform: translateY(-5px) scale(1.03);
-            /* 滑鼠游移時微浮起來，更像實體公仔 */
         }
 
         .timer-display {
@@ -197,7 +193,6 @@
             margin-top: 15px;
         }
 
-        /* 累積頁面：拿掉圓圈與邊框，呈現獨立圖片標籤 */
         .bear-icon-img {
             width: 55px;
             height: 55px;
@@ -236,7 +231,6 @@
         <!-- 計時頁面 -->
         <div id="timer-section" class="section active">
             <div class="bear-display">
-                <!-- 指向本地 assets/ 資料夾中的圖片 -->
                 <img id="bear-img" src="assets/bear1.png" alt="Bear Photo"
                     onerror="this.src='https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=300&auto=format&fit=crop'">
                 <div id="status-text" style="font-weight:bold; color:var(--primary-color);">準備好開始讀書了嗎？</div>
@@ -321,7 +315,6 @@
     </div>
 
     <script>
-        // 5 隻熊熊圖片的相對路徑 (放在 assets/ 資料夾中)
         const bearImages = [
             "assets/bear1.png",
             "assets/bear2.png",
@@ -330,7 +323,7 @@
             "assets/bear5.png"
         ];
 
-        let currentBearIndex = 0; // 當前展示的熊熊索引 (0~4)
+        let currentBearIndex = 0;
 
         let studyTimeMinutes = 30;
         let restTimeMinutes = 5;
@@ -340,10 +333,12 @@
         let isRunning = false;
 
         let totalAccumulatedMinutes = 0;
-        let targetHours = 5; // 預設目標小時
+        let targetHours = 5;
         let historyLogs = [];
 
-        // Web Audio API 音效
+        // 精準計時變數：使用絕對時間戳
+        let endTimeStamp = null;
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playAlarmSound() {
             const osc = audioCtx.createOscillator();
@@ -368,8 +363,8 @@
         }
 
         function updateDisplay() {
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
+            const mins = Math.floor(Math.max(0, totalSeconds) / 60);
+            const secs = Math.floor(Math.max(0, totalSeconds) % 60);
             document.getElementById('timer-display').innerText =
                 `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
@@ -406,16 +401,23 @@
             if (isRunning) return;
             isRunning = true;
 
-            // 只要一按下開始，且目前是讀書模式，就立刻更新狀態文字！
             if (isStudyMode) {
                 document.getElementById('status-text').innerText = "📖 認真讀書中";
             }
 
+            // 計算未來的結束時間點 (當下系統毫秒 + 剩餘秒數 * 1000)
+            endTimeStamp = Date.now() + totalSeconds * 1000;
+
             timerInterval = setInterval(() => {
+                const now = Date.now();
+                // 用絕對時間差距計算真實剩餘秒數
+                totalSeconds = Math.round((endTimeStamp - now) / 1000);
+
                 if (totalSeconds > 0) {
-                    totalSeconds--;
                     updateDisplay();
                 } else {
+                    totalSeconds = 0;
+                    updateDisplay();
                     clearInterval(timerInterval);
                     isRunning = false;
                     playAlarmSound();
@@ -427,7 +429,7 @@
                         switchMode(true);
                     }
                 }
-            }, 1000);
+            }, 500); // 半秒刷新一次確保流暢
         }
 
         function pauseTimer() {
@@ -438,6 +440,9 @@
         function resetTimer() {
             pauseTimer();
             totalSeconds = (isStudyMode ? studyTimeMinutes : restTimeMinutes) * 60;
+            if (isStudyMode) {
+                document.getElementById('status-text').innerText = "準備好開始讀書了嗎？";
+            }
             updateDisplay();
         }
 
@@ -449,7 +454,7 @@
         function switchMode(toStudy) {
             isStudyMode = toStudy;
             if (isStudyMode) {
-                rotateBearImage(); // 進入讀書模式時輪替熊熊照片
+                rotateBearImage();
                 totalSeconds = studyTimeMinutes * 60;
             } else {
                 document.getElementById('status-text').innerText = "☕ 快樂休息時間";
@@ -464,7 +469,7 @@
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             historyLogs.push(`[${timeStr}] 累加讀書 ${studyTimeMinutes} 分鐘`);
 
-            rotateBearImage(); // 每次存入時間也輪替下一隻熊熊照片
+            rotateBearImage();
             alert(`✅ 已成功將 ${studyTimeMinutes} 分鐘存入統計！照片已切換至第 ${currentBearIndex + 1} 隻熊熊。`);
         }
 
@@ -481,14 +486,12 @@
             const mins = totalAccumulatedMinutes % 60;
             document.getElementById('total-time-text').innerText = `總計：${hours} 小時 ${mins} 分鐘`;
 
-            // 根據自訂目標計算百分比
             const targetMinutes = targetHours * 60;
             const progressPercent = Math.min((totalAccumulatedMinutes / targetMinutes) * 100, 100).toFixed(1);
 
             document.getElementById('progress-bar').style.width = `${progressPercent}%`;
             document.getElementById('goal-progress-text').innerText = `目標進度：${progressPercent}% (目標 ${targetHours} 小時)`;
 
-            // 每滿 1 小時，解鎖一張熊熊照片勳章 (依序 1~5 隻輪替)
             const bearContainer = document.getElementById('bear-icons');
             bearContainer.innerHTML = '';
 
@@ -499,7 +502,6 @@
                 bearContainer.innerHTML += `<img class="bear-icon-img" src="${bearImages[imgIndex]}" title="第 ${i + 1} 小時里程碑" onerror="this.src='https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=100&auto=format&fit=crop'">`;
             }
 
-            // 更新歷史紀錄
             const historyContainer = document.getElementById('history-list');
             if (historyLogs.length === 0) {
                 historyContainer.innerText = "尚無累計紀錄";
@@ -516,7 +518,6 @@
             }
         }
 
-        // 音樂控制
         function toggleBGM() {
             const bgm = document.getElementById('bgm-audio');
             const isChecked = document.getElementById('bgm-toggle').checked;
@@ -531,7 +532,15 @@
             document.getElementById('bgm-audio').volume = val;
         }
 
-        // 初始化顯示
+        // 當切回分頁時，立刻校正更新畫面
+        document.addEventListener("visibilitychange", function() {
+            if (!document.hidden && isRunning) {
+                const now = Date.now();
+                totalSeconds = Math.round((endTimeStamp - now) / 1000);
+                updateDisplay();
+            }
+        });
+
         updateDisplay();
     </script>
 
