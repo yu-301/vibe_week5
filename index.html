@@ -315,13 +315,9 @@
     </div>
 
     <script>
-        const bearImages = [
-            "assets/bear1.png",
-            "assets/bear2.png",
-            "assets/bear3.png",
-            "assets/bear4.png",
-            "assets/bear5.png"
-        ];
+        // 自動生成 assets/bear1.png 到 assets/bear30.png 的陣列
+        const totalBears = 30;
+        const bearImages = Array.from({ length: totalBears }, (_, i) => `assets/bear${i + 1}.png`);
 
         let currentBearIndex = 0;
 
